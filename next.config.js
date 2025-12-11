@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Configure basePath for subdirectory deployment (e.g., /escape-room)
+  // Set NEXT_PUBLIC_BASE_PATH environment variable or leave empty for root deployment
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
   typescript: {
     // Exclude main and functions directories from type checking
     ignoreBuildErrors: false,
