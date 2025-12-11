@@ -7,59 +7,59 @@ admin.initializeApp();
 const db = admin.firestore();
 const CLUE_DATA = {
     // App clues (1-12)
-    1: { answer: "deploy", type: "app" },
-    2: { answer: "endpoint", type: "app" },
-    3: { answer: "jira", type: "app" },
-    4: { answer: "database", type: "app" },
-    5: { answer: "api", type: "app" },
-    6: { answer: "server", type: "app" },
-    7: { answer: "client", type: "app" },
-    8: { answer: "frontend", type: "app" },
-    9: { answer: "backend", type: "app" },
-    10: { answer: "code", type: "app" },
-    11: { answer: "function", type: "app" },
-    12: { answer: "variable", type: "app" },
+    1: { answer: "init", type: "misc" },
+    2: { answer: "clown", type: "app" },
+    3: { answer: "gem", type: "app" },
+    4: { answer: "new", type: "misc" },
+    5: { answer: "span", type: "app" },
+    6: { answer: "tank", type: "app" },
+    7: { answer: "duck", type: "app" },
+    8: { answer: "away", type: "app" },
+    9: { answer: "crop", type: "misc" },
+    10: { answer: "huge", type: "app" },
+    11: { answer: "pass", type: "app" },
+    12: { answer: "pick", type: "app" },
     // Jira clues (13-25)
-    13: { answer: "array", type: "jira" },
-    14: { answer: "object", type: "jira" },
-    15: { answer: "string", type: "jira" },
-    16: { answer: "number", type: "jira" },
-    17: { answer: "boolean", type: "jira" },
-    18: { answer: "null", type: "jira" },
-    19: { answer: "undefined", type: "jira" },
-    20: { answer: "async", type: "jira" },
-    21: { answer: "await", type: "jira" },
-    22: { answer: "promise", type: "jira" },
-    23: { answer: "callback", type: "jira" },
-    24: { answer: "error", type: "jira" },
-    25: { answer: "exception", type: "jira" },
+    13: { answer: "sweet", type: "app" },
+    14: { answer: "marker", type: "app" },
+    15: { answer: "lower", type: "app" },
+    16: { answer: "horse", type: "app" },
+    17: { answer: "catch", type: "misc" },
+    18: { answer: "early", type: "app" },
+    19: { answer: "green", type: "app" },
+    20: { answer: "bull", type: "app" },
+    21: { answer: "black", type: "app" },
+    22: { answer: "seek", type: "app" },
+    23: { answer: "goat", type: "app" },
+    24: { answer: "par", type: "app" },
+    25: { answer: "sport", type: "misc" },
     // API clues (26-37)
-    26: { answer: "test", type: "api" },
-    27: { answer: "debug", type: "api" },
-    28: { answer: "log", type: "api" },
-    29: { answer: "console", type: "api" },
-    30: { answer: "browser", type: "api" },
-    31: { answer: "node", type: "api" },
-    32: { answer: "npm", type: "api" },
-    33: { answer: "package", type: "api" },
-    34: { answer: "module", type: "api" },
-    35: { answer: "import", type: "api" },
-    36: { answer: "export", type: "api" },
-    37: { answer: "class", type: "api" },
+    26: { answer: "gold", type: "app" },
+    27: { answer: "play", type: "app" },
+    28: { answer: "spine", type: "api" },
+    29: { answer: "bulb", type: "api" },
+    30: { answer: "rock", type: "api" },
+    31: { answer: "doll", type: "api" },
+    32: { answer: "jumble", type: "api" },
+    33: { answer: "warm", type: "api" },
+    34: { answer: "brain", type: "api" },
+    35: { answer: "crane", type: "api" },
+    36: { answer: "pillow", type: "api" },
+    37: { answer: "submit", type: "jira" },
     // Misc clues (38-50)
-    38: { answer: "method", type: "misc" },
-    39: { answer: "property", type: "misc" },
-    40: { answer: "interface", type: "misc" },
-    41: { answer: "type", type: "misc" },
-    42: { answer: "enum", type: "misc" },
-    43: { answer: "const", type: "misc" },
+    38: { answer: "update", type: "jira" },
+    39: { answer: "bottom", type: "jira" },
+    40: { answer: "emit", type: "jira" },
+    41: { answer: "crawl", type: "misc" },
+    42: { answer: "toad", type: "misc" },
+    43: { answer: "mate", type: "api" },
     44: { answer: "let", type: "misc" },
-    45: { answer: "var", type: "misc" },
-    46: { answer: "return", type: "misc" },
-    47: { answer: "if", type: "misc" },
-    48: { answer: "else", type: "misc" },
-    49: { answer: "for", type: "misc" },
-    50: { answer: "while", type: "misc" },
+    45: { answer: "title", type: "api" },
+    46: { answer: "steak", type: "misc" },
+    47: { answer: "true", type: "misc" },
+    48: { answer: "topic", type: "misc" },
+    49: { answer: "peer", type: "misc" },
+    50: { answer: "assemble", type: "misc" },
 };
 const GAME_ID = "main";
 // Helper function to award payments
@@ -145,6 +145,10 @@ exports.submitGuess = functions.https.onCall(async (data, _context) => {
         playerName,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
+    // Get current game data for payment updates
+    const gameDoc = await gameRef.get();
+    const gameData = gameDoc.data();
+    let payments = gameData.payments || 0;
     if (isCorrect) {
         // Update clue as solved
         await clueRef.update({
@@ -154,8 +158,6 @@ exports.submitGuess = functions.https.onCall(async (data, _context) => {
             solvedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
         // Update game stats
-        const gameDoc = await gameRef.get();
-        const gameData = gameDoc.data();
         const totalSolved = (gameData.totalSolved || 0) + 1;
         const categoryStats = gameData.categoryStats || {};
         // Use type from CLUE_DATA as source of truth, but validate against Firestore
@@ -172,10 +174,15 @@ exports.submitGuess = functions.https.onCall(async (data, _context) => {
             totalSolved,
             categoryStats,
         });
-        // Award payments
+        // Award payments (this may increase payments)
         await awardPayments(gameRef);
         return { correct: true };
     }
+    // Wrong answer: deduct 1 token (can go negative)
+    payments = payments - 1;
+    await gameRef.update({
+        payments,
+    });
     return { correct: false };
 });
 // Function 2: useHint
@@ -192,9 +199,7 @@ exports.useHint = functions.https.onCall(async (data, _context) => {
     }
     const gameData = gameDoc.data();
     const payments = gameData.payments || 0;
-    if (payments < 1) {
-        throw new functions.https.HttpsError("failed-precondition", "Insufficient payments");
-    }
+    // Allow negative tokens - no restriction
     const clueDoc = await clueRef.get();
     if (!clueDoc.exists) {
         throw new functions.https.HttpsError("not-found", "Clue not found");
@@ -229,9 +234,7 @@ exports.revealSolution = functions.https.onCall(async (data, _context) => {
     }
     const gameData = gameDoc.data();
     const payments = gameData.payments || 0;
-    if (payments < 3) {
-        throw new functions.https.HttpsError("failed-precondition", "Insufficient payments (need 3)");
-    }
+    // Allow negative tokens - no restriction
     const clueDoc = await clueRef.get();
     if (!clueDoc.exists) {
         throw new functions.https.HttpsError("not-found", "Clue not found");

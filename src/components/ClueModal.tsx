@@ -33,6 +33,7 @@ export default function ClueModal({
   const [showInput, setShowInput] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
   useEffect(() => {
     // Animate input appearance
@@ -57,20 +58,44 @@ export default function ClueModal({
 
     setSubmitting(true);
     setError(null);
+    setIsCorrect(null);
 
     try {
-      await submitGuess({
+      const result = await submitGuess({
         clueId: clue.id,
         guess: guess.trim(),
         playerName,
       });
-      setGuess('');
-      onUpdate();
-      if (clue.isSolved) {
-        setTimeout(() => onClose(), 1000);
+      
+      const data = result.data as { correct: boolean; alreadySolved?: boolean };
+      
+      if (data.correct) {
+        setIsCorrect(true);
+        setGuess('');
+        onUpdate();
+        // Close modal after a short delay if solved
+        setTimeout(() => {
+          onUpdate(); // Refresh to get updated clue state
+          setTimeout(() => onClose(), 500);
+        }, 1500);
+      } else {
+        setIsCorrect(false);
+        setError('❌ Wrong answer! Try again. (-1 token)');
+        setGuess(''); // Clear the input
+        onUpdate(); // Refresh to update token count
+        // Clear error message after 3 seconds
+        setTimeout(() => {
+          setIsCorrect(null);
+          setError(null);
+        }, 3000);
       }
     } catch (err: any) {
+      setIsCorrect(false);
       setError(err.message || 'Failed to submit guess');
+      setTimeout(() => {
+        setIsCorrect(null);
+        setError(null);
+      }, 3000);
     } finally {
       setSubmitting(false);
     }
@@ -166,14 +191,39 @@ export default function ClueModal({
                 <input
                   type="text"
                   value={guess}
-                  onChange={(e) => setGuess(e.target.value)}
+                  onChange={(e) => {
+                    setGuess(e.target.value);
+                    // Clear error/feedback when user starts typing again
+                    if (isCorrect !== null || error) {
+                      setIsCorrect(null);
+                      setError(null);
+                    }
+                  }}
                   placeholder="Enter your answer..."
                   disabled={submitting || isExpired}
                   autoFocus
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white text-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`
+                    w-full px-4 py-3 bg-slate-800 border rounded-lg text-white text-lg placeholder-slate-400 
+                    focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed
+                    transition-all duration-300
+                    ${
+                      isCorrect === true
+                        ? 'border-green-500 focus:ring-green-500'
+                        : isCorrect === false
+                        ? 'border-red-500 focus:ring-red-500 animate-pulse'
+                        : 'border-slate-600 focus:ring-blue-500'
+                    }
+                  `}
                 />
+                {isCorrect === true && (
+                  <div className="bg-green-900/30 border border-green-500 rounded p-3 animate-fade-in">
+                    <p className="text-green-200 font-semibold text-center">✓ Correct! Well done!</p>
+                  </div>
+                )}
                 {error && (
-                  <p className="text-sm text-red-400">{error}</p>
+                  <div className="bg-red-900/30 border border-red-500 rounded p-3 animate-fade-in">
+                    <p className="text-red-200 font-semibold text-center">{error}</p>
+                  </div>
                 )}
                 <button
                   type="submit"
