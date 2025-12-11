@@ -120,7 +120,8 @@ export function useGame() {
       unsubscribeClues();
       unsubscribeGuesses();
     };
-  }, [db]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return { gameData, clues, guesses, loading, error };
 }
