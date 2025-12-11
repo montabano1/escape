@@ -28,7 +28,7 @@ export default function LiveFeed({ guesses }: LiveFeedProps) {
                 <div className="flex-1">
                   <span className="font-medium text-slate-200">{guess.playerName}</span>
                   <span className="text-slate-400 mx-2">guessed</span>
-                  <span className="font-mono text-slate-300">"{guess.guess}"</span>
+                  <span className="font-mono text-slate-300">&quot;{guess.guess}&quot;</span>
                   <span className="text-slate-400 mx-2">for clue #{guess.clueId}</span>
                   {guess.correct && (
                     <span className="ml-2 text-green-400 font-semibold">✓ Correct!</span>

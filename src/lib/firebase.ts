@@ -11,9 +11,9 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-let app: FirebaseApp;
-let db: Firestore;
-let functions: Functions;
+let app: FirebaseApp | undefined;
+let db: Firestore | undefined;
+let functions: Functions | undefined;
 
 if (typeof window !== 'undefined') {
   try {

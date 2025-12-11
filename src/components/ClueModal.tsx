@@ -34,14 +34,6 @@ export default function ClueModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!functions) {
-    console.error('Firebase Functions not available');
-  }
-
-  const submitGuess = httpsCallable(functions, 'submitGuess');
-  const useHint = httpsCallable(functions, 'useHint');
-  const revealSolution = httpsCallable(functions, 'revealSolution');
-
   useEffect(() => {
     // Animate input appearance
     const timer = setTimeout(() => {
@@ -49,6 +41,15 @@ export default function ClueModal({
     }, 200);
     return () => clearTimeout(timer);
   }, []);
+
+  if (!functions) {
+    console.error('Firebase Functions not available');
+    return null;
+  }
+
+  const submitGuess = httpsCallable(functions, 'submitGuess');
+  const unlockHint = httpsCallable(functions, 'useHint');
+  const revealAnswer = httpsCallable(functions, 'revealSolution');
 
   const handleSubmitGuess = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,7 +84,7 @@ export default function ClueModal({
     setError(null);
 
     try {
-      await useHint({ clueId: clue.id, playerName });
+      await unlockHint({ clueId: clue.id, playerName });
       onUpdate();
     } catch (err: any) {
       setError(err.message || 'Failed to unlock hint');
@@ -100,7 +101,7 @@ export default function ClueModal({
     setError(null);
 
     try {
-      await revealSolution({ clueId: clue.id, playerName });
+      await revealAnswer({ clueId: clue.id, playerName });
       onUpdate();
       setTimeout(() => onClose(), 1000);
     } catch (err: any) {

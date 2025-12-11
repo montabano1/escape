@@ -55,6 +55,12 @@ export function useGame() {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    if (!db) {
+      setError(new Error('Firestore not initialized'));
+      setLoading(false);
+      return;
+    }
+
     const gameRef = doc(db, 'games', GAME_ID);
     const cluesRef = collection(db, 'games', GAME_ID, 'clues');
     const guessesRef = collection(db, 'games', GAME_ID, 'guesses');
@@ -114,7 +120,7 @@ export function useGame() {
       unsubscribeClues();
       unsubscribeGuesses();
     };
-  }, []);
+  }, [db]);
 
   return { gameData, clues, guesses, loading, error };
 }

@@ -39,9 +39,18 @@ export default function ClueTile({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  if (!functions) {
+    console.error('Firebase Functions not available');
+    return (
+      <div className="border-2 rounded-lg p-4 bg-slate-800 border-slate-700">
+        <p className="text-red-400 text-sm">Firebase Functions not available</p>
+      </div>
+    );
+  }
+
   const submitGuess = httpsCallable(functions, 'submitGuess');
-  const useHint = httpsCallable(functions, 'useHint');
-  const revealSolution = httpsCallable(functions, 'revealSolution');
+  const unlockHint = httpsCallable(functions, 'useHint');
+  const revealAnswer = httpsCallable(functions, 'revealSolution');
 
   const handleSubmitGuess = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +81,7 @@ export default function ClueTile({
     setError(null);
 
     try {
-      await useHint({ clueId: clue.id, playerName });
+      await unlockHint({ clueId: clue.id, playerName });
       onUpdate();
     } catch (err: any) {
       setError(err.message || 'Failed to unlock hint');
@@ -88,7 +97,7 @@ export default function ClueTile({
     setError(null);
 
     try {
-      await revealSolution({ clueId: clue.id, playerName });
+      await revealAnswer({ clueId: clue.id, playerName });
       onUpdate();
     } catch (err: any) {
       setError(err.message || 'Failed to reveal solution');
