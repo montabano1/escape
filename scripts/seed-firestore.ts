@@ -47,75 +47,54 @@ const GAME_ID = 'main';
 
 /**
  * IMPORTANT: Clue types and answers are defined in functions/src/index.ts as CLUE_DATA.
- * This seed script should match those types exactly.
+ * This seed script reads from that file to ensure consistency.
  * 
  * The source of truth for clue types is: functions/src/index.ts -> CLUE_DATA
- * 
- * Clue type distribution:
- * - App: 1-12 (12 clues)
- * - Jira: 13-25 (13 clues)
- * - API: 26-37 (12 clues)
- * - Misc: 38-50 (13 clues)
  */
-const CLUES = [
-  // App clues (1-12) - Must match functions/src/index.ts CLUE_DATA
-  { id: 1, type: 'app' as const, hiddenHint: 'Think about deployment processes' },
-  { id: 2, type: 'app' as const, hiddenHint: 'API endpoint configuration' },
-  { id: 3, type: 'app' as const, hiddenHint: 'Project management tool' },
-  { id: 4, type: 'app' as const, hiddenHint: 'Data storage system' },
-  { id: 5, type: 'app' as const, hiddenHint: 'Application programming interface' },
-  { id: 6, type: 'app' as const, hiddenHint: 'Computer that serves requests' },
-  { id: 7, type: 'app' as const, hiddenHint: 'User-facing application' },
-  { id: 8, type: 'app' as const, hiddenHint: 'User interface layer' },
-  { id: 9, type: 'app' as const, hiddenHint: 'Server-side logic' },
-  { id: 10, type: 'app' as const, hiddenHint: 'Source code' },
-  { id: 11, type: 'app' as const, hiddenHint: 'Reusable code block' },
-  { id: 12, type: 'app' as const, hiddenHint: 'Stores a value' },
+
+// Read and parse CLUE_DATA from functions/src/index.ts
+function getClueData() {
+  const functionsIndexPath = path.join(__dirname, '..', 'functions', 'src', 'index.ts');
   
-  // Jira clues (13-25) - Must match functions/src/index.ts CLUE_DATA
-  { id: 13, type: 'jira' as const, hiddenHint: 'Data structure' },
-  { id: 14, type: 'jira' as const, hiddenHint: 'Key-value pairs' },
-  { id: 15, type: 'jira' as const, hiddenHint: 'Text data type' },
-  { id: 16, type: 'jira' as const, hiddenHint: 'Numeric data type' },
-  { id: 17, type: 'jira' as const, hiddenHint: 'True/false value' },
-  { id: 18, type: 'jira' as const, hiddenHint: 'Empty value' },
-  { id: 19, type: 'jira' as const, hiddenHint: 'Undefined value' },
-  { id: 20, type: 'jira' as const, hiddenHint: 'Non-blocking execution' },
-  { id: 21, type: 'jira' as const, hiddenHint: 'Wait for promise' },
-  { id: 22, type: 'jira' as const, hiddenHint: 'Future value' },
-  { id: 23, type: 'jira' as const, hiddenHint: 'Function passed as argument' },
-  { id: 24, type: 'jira' as const, hiddenHint: 'Something went wrong' },
-  { id: 25, type: 'jira' as const, hiddenHint: 'Runtime error' },
+  if (!fs.existsSync(functionsIndexPath)) {
+    throw new Error(`Could not find functions/src/index.ts at ${functionsIndexPath}`);
+  }
   
-  // API clues (26-37) - Must match functions/src/index.ts CLUE_DATA
-  { id: 26, type: 'api' as const, hiddenHint: 'Automated checks' },
-  { id: 27, type: 'api' as const, hiddenHint: 'Find bugs' },
-  { id: 28, type: 'api' as const, hiddenHint: 'Record information' },
-  { id: 29, type: 'api' as const, hiddenHint: 'Browser developer tool' },
-  { id: 30, type: 'api' as const, hiddenHint: 'Web browser' },
-  { id: 31, type: 'api' as const, hiddenHint: 'JavaScript runtime' },
-  { id: 32, type: 'api' as const, hiddenHint: 'Package manager' },
-  { id: 33, type: 'api' as const, hiddenHint: 'Reusable code bundle' },
-  { id: 34, type: 'api' as const, hiddenHint: 'Code file' },
-  { id: 35, type: 'api' as const, hiddenHint: 'Bring in code' },
-  { id: 36, type: 'api' as const, hiddenHint: 'Export code' },
-  { id: 37, type: 'api' as const, hiddenHint: 'Object-oriented structure' },
+  const fileContent = fs.readFileSync(functionsIndexPath, 'utf8');
   
-  // Misc clues (38-50) - Must match functions/src/index.ts CLUE_DATA
-  { id: 38, type: 'misc' as const, hiddenHint: 'Object function' },
-  { id: 39, type: 'misc' as const, hiddenHint: 'Object attribute' },
-  { id: 40, type: 'misc' as const, hiddenHint: 'Type definition' },
-  { id: 41, type: 'misc' as const, hiddenHint: 'Type annotation' },
-  { id: 42, type: 'misc' as const, hiddenHint: 'Named constants' },
-  { id: 43, type: 'misc' as const, hiddenHint: 'Block-scoped constant' },
-  { id: 44, type: 'misc' as const, hiddenHint: 'Block-scoped variable' },
-  { id: 45, type: 'misc' as const, hiddenHint: 'Function-scoped variable' },
-  { id: 46, type: 'misc' as const, hiddenHint: 'Function output' },
-  { id: 47, type: 'misc' as const, hiddenHint: 'Conditional statement' },
-  { id: 48, type: 'misc' as const, hiddenHint: 'Alternative condition' },
-  { id: 49, type: 'misc' as const, hiddenHint: 'Iteration loop' },
-  { id: 50, type: 'misc' as const, hiddenHint: 'Conditional loop' },
-];
+  // Extract CLUE_DATA object using regex
+  const clueDataMatch = fileContent.match(/const CLUE_DATA[^=]*=\s*\{([\s\S]*?)\};/);
+  if (!clueDataMatch) {
+    throw new Error('Could not find CLUE_DATA in functions/src/index.ts');
+  }
+  
+  // Parse the object - match each clue entry: id: {answer: "...", type: "..."}
+  const clueDataContent = clueDataMatch[1];
+  const clues: Array<{ id: number; type: 'app' | 'jira' | 'api' | 'misc'; hiddenHint: string }> = [];
+  
+  // Match pattern: number: {answer: "string", type: "type"}
+  const clueRegex = /(\d+):\s*\{answer:\s*"[^"]+",\s*type:\s*"(app|jira|api|misc)"\}/g;
+  let match;
+  
+  while ((match = clueRegex.exec(clueDataContent)) !== null) {
+    const id = parseInt(match[1], 10);
+    const type = match[2] as 'app' | 'jira' | 'api' | 'misc';
+    clues.push({
+      id,
+      type,
+      hiddenHint: `Hint for clue ${id}`, // Default hint - you can customize these later
+    });
+  }
+  
+  if (clues.length === 0) {
+    throw new Error('No clues found in CLUE_DATA. Check the format in functions/src/index.ts');
+  }
+  
+  return clues.sort((a, b) => a.id - b.id);
+}
+
+// Get clues from CLUE_DATA - this ensures totals match exactly
+const CLUES = getClueData();
 
 async function seedFirestore() {
   const rl = readline.createInterface({
@@ -131,6 +110,14 @@ async function seedFirestore() {
 
   console.log('🌱 Firestore Seed Script');
   console.log('========================\n');
+  
+  // Show clue counts for verification
+  const counts = CLUES.reduce((acc, clue) => {
+    acc[clue.type] = (acc[clue.type] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  console.log('📊 Clue counts from CLUE_DATA:');
+  console.log(`   App: ${counts.app || 0}, Jira: ${counts.jira || 0}, API: ${counts.api || 0}, Misc: ${counts.misc || 0}\n`);
 
   const confirm = await question('This will create/overwrite the game document. Continue? (yes/no): ');
   if (confirm.toLowerCase() !== 'yes') {
